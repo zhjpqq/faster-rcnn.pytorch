@@ -67,14 +67,14 @@ class _fasterRCNN(nn.Module):
             rpn_loss_cls = 0
             rpn_loss_bbox = 0
 
-        rois = Variable(rois)   
+        rois = Variable(rois)   # (batch_size/5L, rois_nums/128L, 5L)
         # do roi pooling based on predicted rois
 
         if cfg.POOLING_MODE == 'crop':
             # pdb.set_trace()
             # pooled_feat_anchor = _crop_pool_layer(base_feat, rois.view(-1, 5))
             grid_xy = _affine_grid_gen(rois.view(-1, 5), base_feat.size()[2:], self.grid_size)
-            grid_yx = torch.stack([grid_xy.data[:,:,:,1], grid_xy.data[:,:,:,0]], 3).contiguous()
+            grid_yx = torch.stack([grid_xy.data[:, :, :, 1], grid_xy.data[:, :, :, 0]], 3).contiguous()
             pooled_feat = self.RCNN_roi_crop(base_feat, Variable(grid_yx).detach())
             if cfg.CROP_RESIZE_WITH_MAX_POOL:
                 pooled_feat = F.max_pool2d(pooled_feat, 2, 2)
@@ -82,6 +82,9 @@ class _fasterRCNN(nn.Module):
             pooled_feat = self.RCNN_roi_align(base_feat, rois.view(-1, 5))
         elif cfg.POOLING_MODE == 'pool':
             pooled_feat = self.RCNN_roi_pool(base_feat, rois.view(-1, 5))
+
+        # pooled_feat: (batch_size*rois_nums/640L, channels/1024L, pooled_height/7L, pooled_width/7L)
+        # pooled_feat: (batch_size*rois_nums/640L, channels/2048L)
 
         # feed pooled features to top model
         pooled_feat = self._head_to_tail(pooled_feat)
