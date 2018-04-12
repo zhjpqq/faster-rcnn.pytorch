@@ -14,14 +14,15 @@ import torch.nn as nn
 import numpy as np
 import math
 import yaml
-from model.utils.config import cfg
+from lib.model.utils.config import cfg
 from .generate_anchors import generate_anchors
 from .bbox_transform import bbox_transform_inv, clip_boxes, clip_boxes_batch
-from model.nms.nms_wrapper import nms
+from lib.model.nms.nms_wrapper import nms
 
 import pdb
 
 DEBUG = False
+
 
 class _ProposalLayer(nn.Module):
     """
@@ -60,7 +61,6 @@ class _ProposalLayer(nn.Module):
         # apply NMS with threshold 0.7 to remaining proposals
         # take after_nms_topN proposals after NMS
         # return the top proposals (-> RoIs top, scores top)
-
 
         # the first set of _num_anchors channels are bg probs
         # the second set are the fg probs

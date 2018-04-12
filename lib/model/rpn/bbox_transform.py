@@ -12,6 +12,7 @@ import torch
 import numpy as np
 import pdb
 
+
 def bbox_transform(ex_rois, gt_rois):
     ex_widths = ex_rois[:, 2] - ex_rois[:, 0] + 1.0
     ex_heights = ex_rois[:, 3] - ex_rois[:, 1] + 1.0
@@ -74,6 +75,7 @@ def bbox_transform_batch(ex_rois, gt_rois):
 
     return targets
 
+
 def bbox_transform_inv(boxes, deltas, batch_size):
     widths = boxes[:, :, 2] - boxes[:, :, 0] + 1.0
     heights = boxes[:, :, 3] - boxes[:, :, 1] + 1.0
@@ -84,7 +86,6 @@ def bbox_transform_inv(boxes, deltas, batch_size):
     dy = deltas[:, :, 1::4]
     dw = deltas[:, :, 2::4]
     dh = deltas[:, :, 3::4]
-
     pred_ctr_x = dx * widths.unsqueeze(2) + ctr_x.unsqueeze(2)
     pred_ctr_y = dy * heights.unsqueeze(2) + ctr_y.unsqueeze(2)
     pred_w = torch.exp(dw) * widths.unsqueeze(2)
@@ -101,6 +102,7 @@ def bbox_transform_inv(boxes, deltas, batch_size):
     pred_boxes[:, :, 3::4] = pred_ctr_y + 0.5 * pred_h
 
     return pred_boxes
+
 
 def clip_boxes_batch(boxes, im_shape, batch_size):
     """
@@ -122,6 +124,7 @@ def clip_boxes_batch(boxes, im_shape, batch_size):
 
     return boxes
 
+
 def clip_boxes(boxes, im_shape, batch_size):
 
     for i in range(batch_size):
@@ -129,7 +132,6 @@ def clip_boxes(boxes, im_shape, batch_size):
         boxes[i,:,1::4].clamp_(0, im_shape[i, 0]-1)
         boxes[i,:,2::4].clamp_(0, im_shape[i, 1]-1)
         boxes[i,:,3::4].clamp_(0, im_shape[i, 0]-1)
-
     return boxes
 
 
@@ -165,6 +167,7 @@ def bbox_overlaps(anchors, gt_boxes):
 
     return overlaps
 
+
 def bbox_overlaps_batch(anchors, gt_boxes):
     """
     anchors: (N, 4) ndarray of float
@@ -174,15 +177,13 @@ def bbox_overlaps_batch(anchors, gt_boxes):
     """
     batch_size = gt_boxes.size(0)
 
-
     if anchors.dim() == 2:
 
         N = anchors.size(0)
         K = gt_boxes.size(1)
 
         anchors = anchors.view(1, N, 4).expand(batch_size, N, 4).contiguous()
-        gt_boxes = gt_boxes[:,:,:4].contiguous()
-
+        gt_boxes = gt_boxes[:, :, :4].contiguous()
 
         gt_boxes_x = (gt_boxes[:,:,2] - gt_boxes[:,:,0] + 1)
         gt_boxes_y = (gt_boxes[:,:,3] - gt_boxes[:,:,1] + 1)
@@ -198,12 +199,10 @@ def bbox_overlaps_batch(anchors, gt_boxes):
         boxes = anchors.view(batch_size, N, 1, 4).expand(batch_size, N, K, 4)
         query_boxes = gt_boxes.view(batch_size, 1, K, 4).expand(batch_size, N, K, 4)
 
-        iw = (torch.min(boxes[:,:,:,2], query_boxes[:,:,:,2]) -
-            torch.max(boxes[:,:,:,0], query_boxes[:,:,:,0]) + 1)
+        iw = (torch.min(boxes[:, :, :, 2], query_boxes[:, :, :, 2]) - torch.max(boxes[:, :, :, 0], query_boxes[:, :, :, 0]) + 1)
         iw[iw < 0] = 0
 
-        ih = (torch.min(boxes[:,:,:,3], query_boxes[:,:,:,3]) -
-            torch.max(boxes[:,:,:,1], query_boxes[:,:,:,1]) + 1)
+        ih = (torch.min(boxes[:,:,:,3], query_boxes[:,:,:,3]) - torch.max(boxes[:,:,:,1], query_boxes[:,:,:,1]) + 1)
         ih[ih < 0] = 0
         ua = anchors_area + gt_boxes_area - (iw * ih)
         overlaps = iw * ih / ua

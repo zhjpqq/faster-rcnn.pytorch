@@ -17,6 +17,7 @@ from ..utils.config import cfg
 from .bbox_transform import bbox_overlaps_batch, bbox_transform_batch
 import pdb
 
+
 class _ProposalTargetLayer(nn.Module):
     """
     Assign object detection proposals to ground-truth targets. Produces proposal
@@ -92,7 +93,6 @@ class _ProposalTargetLayer(nn.Module):
 
         return bbox_targets, bbox_inside_weights
 
-
     def _compute_targets_pytorch(self, ex_rois, gt_rois):
         """Compute bounding-box regression targets for an image."""
 
@@ -111,7 +111,6 @@ class _ProposalTargetLayer(nn.Module):
                         / self.BBOX_NORMALIZE_STDS.expand_as(targets))
 
         return targets
-
 
     def _sample_rois_pytorch(self, all_rois, gt_boxes, fg_rois_per_image, rois_per_image, num_classes):
         """Generate a random sample of RoIs comprising foreground and background
